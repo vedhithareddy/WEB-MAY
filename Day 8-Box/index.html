@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .product{
+        border: 2px solid black;
+        width: 200px;
+        text-align: center;
+        border-radius: 12px;
+        padding: 10px;
+        margin: 10px;
+        background-color: rgb(46, 3, 3);
+        box-shadow: 2px 4px 8px rgb(209, 94, 94);
+        
+    }
+    .product:hover{
+        box-shadow: 2px 4px 8px blue;
+        transition: 2s;
+    }
+    body{
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .product img{
+        width: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid white;
+    }
+
+    .product button{
+        background-color: orange;
+        border: none;
+        padding: 10px;
+        border-radius: 12px;
+        color: white;
+        
+    }
+    .product h2{
+        color: white;
+    }
+    .product p{
+        color: white;
+    }
+    </style>
+</head>
+<body>
+    <div class="product">
+        <img src="https://images.pexels.com/photos/27860686/pexels-photo-27860686.jpeg" height="150">
+        <h2> Filter Coffee </h2>
+        <p> Rs 199.00 </p>
+        <button> Buy Now</button>
+    </div>
+    <div class="product">
+        <img src="https://images.pexels.com/photos/8605045/pexels-photo-8605045.jpeg"height="150">
+        <h2>CupCake </h2>
+        <p> Rs 120</Rs:120></p>
+        <button> Buy Now</button>
+    </div>
+    <div class="product">
+        <img src="https://images.pexels.com/photos/35054717/pexels-photo-35054717.jpeg" height="150">
+        <h2> Chocolate Waffle </h2>
+        <p> Rs 140.00</p>
+        <button> Buy Now</button>
+    </div>
+    <div class="product">
+        <img src="https://images.pexels.com/photos/31137289/pexels-photo-31137289.jpeg" height="150">
+        <h2>Ice Cream </h2>
+        <p> Rs 120.00</p>
+        <button> Buy Now</button>
+    </div>
+</body>
+</html>
