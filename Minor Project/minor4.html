@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Skylark + Marquee — Weather &amp; Movie Search</title>
+<meta name="description" content="Two mini apps in one page: current weather by city, and movie search with ratings." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* shared */
+    --font-body: "Inter", "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+
+    /* weather theme */
+    --w-midnight: #12163B;
+    --w-dusk:     #232B63;
+    --w-sky:      #4B7BE5;
+    --w-cloud:    #F1F3FF;
+    --w-sun:      #FFC857;
+    --w-danger:   #FF6B6B;
+    --font-display: "Outfit", sans-serif;
+
+    /* movie theme */
+    --m-ink:     #121014;
+    --m-panel:   #1B181E;
+    --m-cream:   #F5F1EA;
+    --m-muted:   #9A939C;
+    --m-crimson: #E23E57;
+    --m-gold:    #F4C95D;
+    --m-rule:    #2E2A31;
+    --font-marquee: "Bebas Neue", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font-body); }
+
+  /* ============ TAB SWITCHER ============ */
+  .tab-bar {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .tab-btn {
+    flex: 1;
+    border: none;
+    padding: 18px 12px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: #0B0C10;
+    color: rgba(255,255,255,0.45);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .tab-btn.active.weather { background: var(--w-midnight); color: var(--w-cloud); }
+  .tab-btn.active.movies  { background: var(--m-ink); color: var(--m-gold); }
+
+  .tab-panel { display: none; min-height: 100vh; }
+  .tab-panel.active { display: block; }
+
+  /* ============ WEATHER TAB ============ */
+  #weather-panel {
+    background: radial-gradient(circle at 20% -10%, var(--w-dusk), var(--w-midnight) 60%);
+    color: var(--w-cloud);
+    display: flex;
+    justify-content: center;
+    padding: 56px 20px 80px;
+  }
+
+  #weather-panel .app { width: 100%; max-width: 480px; }
+
+  #weather-panel h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.9rem;
+    margin: 0 0 6px;
+  }
+
+  #weather-panel .subtitle {
+    color: rgba(241, 243, 255, 0.6);
+    margin: 0 0 32px;
+    font-size: 0.95rem;
+  }
+
+  #weather-panel form { display: flex; gap: 10px; margin-bottom: 20px; }
+
+  #weather-panel input[type="text"] {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(241, 243, 255, 0.15);
+    background: rgba(241, 243, 255, 0.06);
+    color: var(--w-cloud);
+    font-family: var(--font-body);
+    font-size: 1rem;
+  }
+
+  #weather-panel input::placeholder { color: rgba(241, 243, 255, 0.4); }
+
+  #weather-panel button {
+    padding: 14px 22px;
+    border-radius: 12px;
+    border: none;
+    background: var(--w-sky);
+    color: var(--w-cloud);
+    font-family: var(--font-display);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  #weather-panel button:hover { transform: translateY(-1px); background: #5C89EE; }
+  #weather-panel button:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+  #weather-panel .status {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: rgba(241, 243, 255, 0.55);
+    min-height: 20px;
+    margin-bottom: 8px;
+  }
+
+  #weather-panel .status.error { color: var(--w-danger); }
+
+  #weather-panel .card {
+    display: none;
+    background: rgba(241, 243, 255, 0.06);
+    border: 1px solid rgba(241, 243, 255, 0.12);
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+  #weather-panel .card.visible { display: block; }
+
+  #weather-panel .card-top {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+
+  #weather-panel .location { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; }
+  #weather-panel .updated { font-family: var(--font-mono); font-size: 0.72rem; color: rgba(241, 243, 255, 0.45); }
+
+  #weather-panel .temp-row { display: flex; align-items: center; gap: 18px; margin: 18px 0 6px; }
+  #weather-panel .icon { width: 64px; height: 64px; flex-shrink: 0; }
+  #weather-panel .temp { font-family: var(--font-display); font-size: 3.2rem; font-weight: 700; line-height: 1; }
+  #weather-panel .condition { color: rgba(241, 243, 255, 0.75); margin: 0 0 28px; font-size: 1.05rem; }
+
+  #weather-panel .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  #weather-panel .stat { background: rgba(241, 243, 255, 0.05); border-radius: 12px; padding: 14px 16px; }
+  #weather-panel .stat .label {
+    display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.05em; color: rgba(241, 243, 255, 0.5); margin-bottom: 4px;
+  }
+  #weather-panel .stat .value { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; }
+
+  #weather-panel footer { margin-top: 40px; font-family: var(--font-mono); font-size: 0.72rem; color: rgba(241, 243, 255, 0.35); }
+  #weather-panel footer a { color: rgba(241, 243, 255, 0.5); }
+
+  /* ============ MOVIES TAB ============ */
+  #movies-panel { background: var(--m-ink); color: var(--m-cream); }
+
+  #movies-panel .wrap { max-width: 960px; margin: 0 auto; padding: 56px 20px 80px; }
+
+  #movies-panel header.hero { text-align: center; margin-bottom: 40px; }
+
+  #movies-panel .marquee {
+    font-family: var(--font-marquee);
+    font-size: clamp(2.6rem, 7vw, 4.2rem);
+    letter-spacing: 0.04em;
+    color: var(--m-gold);
+    margin: 0 0 8px;
+    text-shadow: 0 0 24px rgba(244, 201, 93, 0.25);
+  }
+
+  #movies-panel .tagline { color: var(--m-muted); margin: 0; font-size: 0.95rem; }
+
+  #movies-panel .search-row { display: flex; gap: 10px; max-width: 560px; margin: 36px auto 8px; }
+
+  #movies-panel input[type="text"], #movies-panel input[type="password"] {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--m-rule);
+    background: var(--m-panel);
+    color: var(--m-cream);
+    font-family: var(--font-body);
+    font-size: 1rem;
+  }
+
+  #movies-panel input::placeholder { color: var(--m-muted); }
+
+  #movies-panel button.primary {
+    padding: 14px 24px;
+    border-radius: 10px;
+    border: none;
+    background: var(--m-crimson);
+    color: var(--m-cream);
+    font-family: var(--font-marquee);
+    letter-spacing: 0.04em;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  #movies-panel button.primary:hover { transform: translateY(-1px); background: #F0546C; }
+  #movies-panel button.primary:disabled { opacity: 0.55; cursor: default; transform: none; }
+
+  #movies-panel .key-panel { max-width: 560px; margin: 0 auto 20px; text-align: center; }
+
+  #movies-panel .key-toggle {
+    background: none; border: none; color: var(--m-muted); font-family: var(--font-mono);
+    font-size: 0.78rem; text-decoration: underline; cursor: pointer; padding: 4px;
+  }
+
+  #movies-panel .key-form { display: none; gap: 10px; margin-top: 12px; }
+  #movies-panel .key-form.open { display: flex; }
+  #movies-panel .key-form button {
+    padding: 12px 18px; border-radius: 10px; border: 1px solid var(--m-rule);
+    background: var(--m-panel); color: var(--m-cream); font-family: var(--font-mono);
+    font-size: 0.82rem; cursor: pointer;
+  }
+
+  #movies-panel .status {
+    text-align: center; font-family: var(--font-mono); font-size: 0.85rem;
+    color: var(--m-muted); min-height: 20px; margin: 16px 0;
+  }
+  #movies-panel .status.error { color: var(--m-crimson); }
+
+  #movies-panel .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 22px;
+    margin-top: 24px;
+  }
+
+  #movies-panel .movie-card {
+    background: var(--m-panel);
+    border: 1px solid var(--m-rule);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+    text-align: left;
+    padding: 0;
+  }
+
+  #movies-panel .movie-card:hover { transform: translateY(-4px); border-color: var(--m-gold); }
+  #movies-panel .movie-card .poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; background: var(--m-ink); display: block; }
+  #movies-panel .movie-card .info { padding: 12px 14px 16px; }
+  #movies-panel .movie-card .title { font-family: var(--font-marquee); font-size: 1.15rem; letter-spacing: 0.02em; margin: 0 0 4px; line-height: 1.1; }
+  #movies-panel .movie-card .year { font-family: var(--font-mono); font-size: 0.75rem; color: var(--m-muted); }
+
+  #movies-panel .modal-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(18, 16, 20, 0.85);
+    align-items: center; justify-content: center; padding: 20px; z-index: 100;
+  }
+  #movies-panel .modal-backdrop.open { display: flex; }
+
+  #movies-panel .modal {
+    background: var(--m-panel); border: 1px solid var(--m-rule); border-radius: 16px;
+    max-width: 640px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 28px; position: relative;
+  }
+
+  #movies-panel .modal-close {
+    position: absolute; top: 16px; right: 16px; background: var(--m-ink); border: 1px solid var(--m-rule);
+    color: var(--m-cream); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1rem;
+  }
+
+  #movies-panel .modal-body { display: flex; gap: 22px; }
+  #movies-panel .modal-body .poster { width: 150px; border-radius: 10px; flex-shrink: 0; }
+  #movies-panel .modal-title { font-family: var(--font-marquee); font-size: 2rem; color: var(--m-gold); margin: 0 0 4px; letter-spacing: 0.02em; }
+  #movies-panel .modal-meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--m-muted); margin-bottom: 14px; }
+  #movies-panel .rating-pill {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(244, 201, 93, 0.12);
+    color: var(--m-gold); font-family: var(--font-mono); font-size: 0.85rem; padding: 6px 12px;
+    border-radius: 999px; margin-bottom: 14px;
+  }
+  #movies-panel .modal-plot { color: var(--m-cream); line-height: 1.6; }
+
+  #movies-panel footer.note { text-align: center; margin-top: 48px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--m-muted); }
+  #movies-panel footer.note a { color: var(--m-muted); }
+
+  :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+  @media (max-width: 520px) {
+    #weather-panel form { flex-direction: column; }
+    #weather-panel .temp { font-size: 2.6rem; }
+    #movies-panel .search-row { flex-direction: column; }
+    #movies-panel .modal-body { flex-direction: column; }
+    #movies-panel .modal-body .poster { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="tab-bar">
+    <button class="tab-btn active weather" id="tab-btn-weather">Skylark — Weather</button>
+    <button class="tab-btn movies" id="tab-btn-movies">Marquee — Movies</button>
+  </div>
+
+  <!-- ============ WEATHER APP ============ -->
+  <section id="weather-panel" class="tab-panel active">
+    <div class="app">
+      <h1>Skylark</h1>
+      <p class="subtitle">Search any city for current conditions.</p>
+
+      <form id="weather-form" autocomplete="off">
+        <input type="text" id="city-input" placeholder="Try “Mumbai”, “Tokyo”, “Cairo”…" aria-label="City name" />
+        <button type="submit" id="weather-button">Search</button>
+      </form>
+
+      <p class="status" id="weather-status" role="status"></p>
+
+      <section class="card" id="weather-card" aria-live="polite">
+        <div class="card-top">
+          <span class="location" id="w-location"></span>
+          <span class="updated" id="w-updated"></span>
+        </div>
+        <div class="temp-row">
+          <svg class="icon" id="w-icon" viewBox="0 0 64 64" aria-hidden="true"></svg>
+          <span class="temp" id="w-temp"></span>
+        </div>
+        <p class="condition" id="w-condition"></p>
+        <div class="stats">
+          <div class="stat"><span class="label">Humidity</span><span class="value" id="w-humidity"></span></div>
+          <div class="stat"><span class="label">Wind speed</span><span class="value" id="w-wind"></span></div>
+        </div>
+      </section>
+
+      <footer>Data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — free, no API key required.</footer>
+    </div>
+  </section>
+
+  <!-- ============ MOVIE APP ============ -->
+  <section id="movies-panel" class="tab-panel">
+    <div class="wrap">
+      <header class="hero">
+        <h1 class="marquee">MARQUEE</h1>
+        <p class="tagline">Search any movie. See posters, ratings, and release details.</p>
+      </header>
+
+      <form id="movie-form" class="search-row" autocomplete="off">
+        <input type="text" id="query-input" placeholder="Try “Inception”, “Dune”, “Parasite”…" aria-label="Movie title" />
+        <button type="submit" class="primary" id="movie-button">Search</button>
+      </form>
+
+      <div class="key-panel">
+        <button type="button" class="key-toggle" id="key-toggle">Using your own OMDb API key? Set it here.</button>
+        <div class="key-form" id="key-form">
+          <input type="password" id="key-input" placeholder="Paste your free OMDb API key" aria-label="OMDb API key" />
+          <button type="button" id="key-save">Save key</button>
+        </div>
+      </div>
+
+      <p class="status" id="movie-status" role="status"></p>
+
+      <div class="grid" id="movie-grid"></div>
+
+      <footer class="note">
+        Data from <a href="https://www.omdbapi.com/" target="_blank" rel="noopener">OMDb API</a>.
+        Get a free key at <a href="https://www.omdbapi.com/apikey.aspx" target="_blank" rel="noopener">omdbapi.com/apikey.aspx</a> — stored only in your browser.
+      </footer>
+    </div>
+
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal">
+        <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+        <div class="modal-body" id="modal-body"></div>
+      </div>
+    </div>
+  </section>
+
+<script>
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
+  const tabButtons = { weather: document.getElementById('tab-btn-weather'), movies: document.getElementById('tab-btn-movies') };
+  const tabPanels  = { weather: document.getElementById('weather-panel'),  movies: document.getElementById('movies-panel') };
+
+  function showTab(name) {
+    Object.keys(tabPanels).forEach((key) => {
+      tabPanels[key].classList.toggle('active', key === name);
+      tabButtons[key].classList.toggle('active', key === name);
+    });
+  }
+
+  tabButtons.weather.addEventListener('click', () => showTab('weather'));
+  tabButtons.movies.addEventListener('click', () => showTab('movies'));
+
+  // ============================================================
+  // WEATHER APP (Open-Meteo — no API key needed)
+  // ============================================================
+  const Weather = (() => {
+    const GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search";
+    const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+
+    const WEATHER_CODES = {
+      0: { text: "Clear sky", icon: "sun" },
+      1: { text: "Mostly clear", icon: "sun" },
+      2: { text: "Partly cloudy", icon: "cloud-sun" },
+      3: { text: "Overcast", icon: "cloud" },
+      45: { text: "Fog", icon: "fog" }, 48: { text: "Depositing rime fog", icon: "fog" },
+      51: { text: "Light drizzle", icon: "rain" }, 53: { text: "Drizzle", icon: "rain" }, 55: { text: "Dense drizzle", icon: "rain" },
+      61: { text: "Light rain", icon: "rain" }, 63: { text: "Rain", icon: "rain" }, 65: { text: "Heavy rain", icon: "rain" },
+      71: { text: "Light snow", icon: "snow" }, 73: { text: "Snow", icon: "snow" }, 75: { text: "Heavy snow", icon: "snow" },
+      80: { text: "Rain showers", icon: "rain" }, 81: { text: "Rain showers", icon: "rain" }, 82: { text: "Violent rain showers", icon: "rain" },
+      95: { text: "Thunderstorm", icon: "storm" }, 96: { text: "Thunderstorm, hail", icon: "storm" }, 99: { text: "Thunderstorm, hail", icon: "storm" },
+    };
+
+    const describeCode = (code) => WEATHER_CODES[code] ?? { text: "Unknown conditions", icon: "cloud" };
+
+    async function geocodeCity(city) {
+      const url = `${GEOCODE_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Location lookup failed (status ${res.status}).`);
+      const data = await res.json();
+      const [place] = data.results ?? [];
+      if (!place) throw new Error(`No location found for "${city}".`);
+      const { latitude, longitude, name, admin1, country } = place;
+      const label = [name, admin1, country].filter(Boolean).join(", ");
+      return { latitude, longitude, label };
+    }
+
+    async function fetchCurrentWeather(latitude, longitude) {
+      const params = new URLSearchParams({
+        latitude, longitude,
+        current: "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code",
+        timezone: "auto",
+      });
+      const res = await fetch(`${FORECAST_URL}?${params}`);
+      if (!res.ok) throw new Error(`Weather service error (status ${res.status}).`);
+      const { current } = await res.json();
+      if (!current) throw new Error("Weather data was empty. Try again in a moment.");
+      return {
+        temperature: current.temperature_2m,
+        humidity: current.relative_humidity_2m,
+        windSpeed: current.wind_speed_10m,
+        ...describeCode(current.weather_code),
+        observedAt: current.time,
+      };
+    }
+
+    const ICONS = {
+      sun: `<circle cx="32" cy="32" r="14" fill="#FFC857"/>`,
+      "cloud-sun": `<circle cx="24" cy="26" r="11" fill="#FFC857"/><ellipse cx="38" cy="38" rx="18" ry="12" fill="#F1F3FF" opacity="0.85"/>`,
+      cloud: `<ellipse cx="32" cy="36" rx="20" ry="13" fill="#F1F3FF" opacity="0.85"/>`,
+      fog: `<rect x="10" y="24" width="44" height="4" rx="2" fill="#F1F3FF" opacity="0.5"/><rect x="10" y="34" width="44" height="4" rx="2" fill="#F1F3FF" opacity="0.7"/><rect x="10" y="44" width="44" height="4" rx="2" fill="#F1F3FF" opacity="0.5"/>`,
+      rain: `<ellipse cx="32" cy="28" rx="18" ry="12" fill="#F1F3FF" opacity="0.85"/><line x1="22" y1="46" x2="18" y2="56" stroke="#4B7BE5" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="46" x2="28" y2="56" stroke="#4B7BE5" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="46" x2="38" y2="56" stroke="#4B7BE5" stroke-width="3" stroke-linecap="round"/>`,
+      snow: `<ellipse cx="32" cy="26" rx="18" ry="12" fill="#F1F3FF" opacity="0.85"/><circle cx="20" cy="50" r="2.5" fill="#F1F3FF"/><circle cx="32" cy="54" r="2.5" fill="#F1F3FF"/><circle cx="44" cy="50" r="2.5" fill="#F1F3FF"/>`,
+      storm: `<ellipse cx="32" cy="24" rx="18" ry="11" fill="#5B6478"/><polygon points="30,38 22,54 30,54 26,64 42,44 33,44 38,38" fill="#FFC857"/>`,
+    };
+
+    const form = document.getElementById('weather-form');
+    const input = document.getElementById('city-input');
+    const button = document.getElementById('weather-button');
+    const status = document.getElementById('weather-status');
+    const card = document.getElementById('weather-card');
+    const els = {
+      location: document.getElementById('w-location'),
+      updated: document.getElementById('w-updated'),
+      icon: document.getElementById('w-icon'),
+      temp: document.getElementById('w-temp'),
+      condition: document.getElementById('w-condition'),
+      humidity: document.getElementById('w-humidity'),
+      wind: document.getElementById('w-wind'),
+    };
+
+    function setStatus(message, isError = false) {
+      status.textContent = message;
+      status.classList.toggle('error', isError);
+    }
+
+    function setLoading(isLoading) {
+      button.disabled = isLoading;
+      button.textContent = isLoading ? "Searching…" : "Search";
+    }
+
+    function render({ label }, weather) {
+      const { temperature, humidity, windSpeed, text, icon, observedAt } = weather;
+      els.location.textContent = label;
+      els.updated.textContent = observedAt
+        ? `updated ${new Date(observedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+        : "";
+      els.icon.innerHTML = ICONS[icon] ?? ICONS.cloud;
+      els.temp.textContent = `${Math.round(temperature)}°C`;
+      els.condition.textContent = text;
+      els.humidity.textContent = `${humidity}%`;
+      els.wind.textContent = `${windSpeed} km/h`;
+      card.classList.add('visible');
+    }
+
+    async function search(city) {
+      setLoading(true);
+      setStatus(`Looking up ${city}…`);
+      card.classList.remove('visible');
+      try {
+        const place = await geocodeCity(city);
+        const weather = await fetchCurrentWeather(place.latitude, place.longitude);
+        render(place, weather);
+        setStatus("");
+      } catch (err) {
+        setStatus(err.message || "Something went wrong. Please try again.", true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const city = input.value.trim();
+      if (!city) { setStatus("Type a city name first.", true); return; }
+      search(city);
+    });
+
+    return { init: () => search("Mumbai") };
+  })();
+
+  // ============================================================
+  // MOVIE APP (OMDb — needs a free API key, stored in localStorage)
+  // ============================================================
+  const Movies = (() => {
+    const BASE_URL = "https://www.omdbapi.com/";
+    const KEY_STORAGE = "omdb_api_key";
+
+    async function searchMovies(apiKey, query) {
+      const params = new URLSearchParams({ apikey: apiKey, s: query, type: "movie" });
+      const res = await fetch(`${BASE_URL}?${params}`);
+      if (!res.ok) throw new Error(`Movie service error (status ${res.status}).`);
+      const data = await res.json();
+      if (data.Response === "False") throw new Error(data.Error || `No movies found for "${query}".`);
+      return data.Search.map(({ Title, Year, imdbID, Poster }) => ({
+        title: Title, year: Year, imdbID, poster: Poster !== "N/A" ? Poster : null,
+      }));
+    }
+
+    async function getMovieDetails(apiKey, imdbID) {
+      const params = new URLSearchParams({ apikey: apiKey, i: imdbID, plot: "short" });
+      const res = await fetch(`${BASE_URL}?${params}`);
+      if (!res.ok) throw new Error(`Movie service error (status ${res.status}).`);
+      const data = await res.json();
+      if (data.Response === "False") throw new Error(data.Error || "Couldn't load details for that title.");
+      const { Title, Year, Runtime, Genre, imdbRating, Plot, Poster, Released } = data;
+      return { title: Title, year: Year, runtime: Runtime, genre: Genre, rating: imdbRating, plot: Plot, poster: Poster !== "N/A" ? Poster : null, released: Released };
+    }
+
+    const keyToggle = document.getElementById('key-toggle');
+    const keyForm = document.getElementById('key-form');
+    const keyInput = document.getElementById('key-input');
+    const keySave = document.getElementById('key-save');
+    const form = document.getElementById('movie-form');
+    const queryInput = document.getElementById('query-input');
+    const button = document.getElementById('movie-button');
+    const status = document.getElementById('movie-status');
+    const grid = document.getElementById('movie-grid');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+
+    const getApiKey = () => localStorage.getItem(KEY_STORAGE) || "";
+    const setApiKey = (key) => localStorage.setItem(KEY_STORAGE, key);
+
+    keyToggle.addEventListener('click', () => {
+      keyForm.classList.toggle('open');
+      keyInput.value = getApiKey();
+      if (keyForm.classList.contains('open')) keyInput.focus();
+    });
+
+    keySave.addEventListener('click', () => {
+      const key = keyInput.value.trim();
+      if (!key) return;
+      setApiKey(key);
+      keyForm.classList.remove('open');
+      setStatus("API key saved. Try a search.");
+    });
+
+    function setStatus(message, isError = false) {
+      status.textContent = message;
+      status.classList.toggle('error', isError);
+    }
+
+    function setLoading(isLoading) {
+      button.disabled = isLoading;
+      button.textContent = isLoading ? "Searching…" : "Search";
+    }
+
+    function renderResults(movies) {
+      grid.innerHTML = "";
+      for (const movie of movies) {
+        const card = document.createElement('button');
+        card.className = 'movie-card';
+        card.type = 'button';
+        card.setAttribute('aria-label', `View details for ${movie.title}`);
+        card.innerHTML = `
+          <img class="poster" src="${movie.poster ?? ''}" alt="${movie.title} poster" loading="lazy" onerror="this.style.opacity=0" />
+          <div class="info">
+            <p class="title">${movie.title}</p>
+            <span class="year">${movie.year}</span>
+          </div>
+        `;
+        card.addEventListener('click', () => openDetails(movie.imdbID));
+        grid.appendChild(card);
+      }
+    }
+
+    async function openDetails(imdbID) {
+      const apiKey = getApiKey();
+      try {
+        const details = await getMovieDetails(apiKey, imdbID);
+        const { title, year, runtime, genre, rating, plot, poster, released } = details;
+        modalBody.innerHTML = `
+          <img class="poster" src="${poster ?? ''}" alt="${title} poster" />
+          <div>
+            <h2 class="modal-title">${title}</h2>
+            <p class="modal-meta">${year} · ${runtime} · ${genre}</p>
+            <span class="rating-pill">★ ${rating ?? 'N/A'} / 10</span>
+            <p class="modal-meta">Released ${released}</p>
+            <p class="modal-plot">${plot}</p>
+          </div>
+        `;
+        modalBackdrop.classList.add('open');
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+
+    modalClose.addEventListener('click', () => modalBackdrop.classList.remove('open'));
+    modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('open'); });
+
+    async function search(query) {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        setStatus("Add your free OMDb API key first (link below the search box).", true);
+        keyForm.classList.add('open');
+        return;
+      }
+      setLoading(true);
+      setStatus(`Searching for "${query}"…`);
+      grid.innerHTML = "";
+      try {
+        const movies = await searchMovies(apiKey, query);
+        renderResults(movies);
+        setStatus(`${movies.length} result${movies.length === 1 ? '' : 's'} for "${query}".`);
+      } catch (err) {
+        setStatus(err.message, true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const query = queryInput.value.trim();
+      if (!query) { setStatus("Type a movie title first.", true); return; }
+      search(query);
+    });
+
+    return {
+      init: () => {
+        if (!getApiKey()) {
+          setStatus("Add your free OMDb API key to start searching.");
+          keyForm.classList.add('open');
+        }
+      },
+    };
+  })();
+
+  Weather.init();
+  Movies.init();
+</script>
+
+</body>
+</html>
