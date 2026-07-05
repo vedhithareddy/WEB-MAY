@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Terra — The self-watering planter that thinks ahead</title>
+<meta name="description" content="Terra is a self-watering ceramic planter with a built-in moisture sensor. Water less, grow more." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS (utility-first styling, per brief) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          forest:  '#16302A',
+          forest2: '#1F4038',
+          sage:    '#8FAE9C',
+          paper:   '#F5F2E9',
+          gold:    '#E8A33D',
+          clay:    '#2A241C',
+        },
+        fontFamily: {
+          display: ['Sora', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  /* ===================================================
+     Hand-written CSS3: base, transitions, custom grid/flex
+     (kept separate from Tailwind utilities on purpose,
+     so Flexbox / Grid / media-query work is visible)
+     =================================================== */
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: #F5F2E9; }
+
+  h1, h2, h3, .display { font-family: 'Sora', sans-serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  :focus-visible { outline: 2px solid #E8A33D; outline-offset: 3px; }
+
+  /* ---------- Responsive nav: Flexbox ---------- */
+  .nav-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-mobile-panel { display: none; }
+  .nav-mobile-panel.open { display: flex; }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-mobile-panel {
+      flex-direction: column;
+      gap: 4px;
+      position: absolute;
+      top: 72px;
+      left: 0;
+      right: 0;
+      background: #16302A;
+      padding: 12px 24px 24px;
+    }
+  }
+
+  /* ---------- Hero: Flexbox split ---------- */
+  .hero-flex {
+    display: flex;
+    align-items: center;
+    gap: 56px;
+  }
+
+  @media (max-width: 900px) {
+    .hero-flex { flex-direction: column-reverse; text-align: center; }
+  }
+
+  /* ---------- Product showcase: CSS Grid (bento) ---------- */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, minmax(160px, auto));
+    gap: 18px;
+  }
+
+  .bento .cell-a { grid-column: span 2; grid-row: span 2; }
+  .bento .cell-b { grid-column: span 2; grid-row: span 1; }
+  .bento .cell-c { grid-column: span 1; grid-row: span 1; }
+  .bento .cell-d { grid-column: span 1; grid-row: span 1; }
+
+  @media (max-width: 900px) {
+    .bento {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: auto;
+    }
+    .bento .cell-a { grid-column: span 2; grid-row: span 1; }
+    .bento .cell-b { grid-column: span 2; }
+    .bento .cell-c, .bento .cell-d { grid-column: span 1; }
+  }
+
+  @media (max-width: 560px) {
+    .bento { grid-template-columns: 1fr; }
+    .bento .cell-a, .bento .cell-b, .bento .cell-c, .bento .cell-d {
+      grid-column: span 1;
+    }
+  }
+
+  /* ---------- Feature cards: Flexbox wrap ---------- */
+  .card-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .card-flex > * { flex: 1 1 260px; }
+
+  /* ---------- Care schedule: CSS Grid rows ---------- */
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    row-gap: 14px;
+    column-gap: 20px;
+    align-items: center;
+  }
+
+  @media (max-width: 560px) {
+    .schedule-grid { grid-template-columns: 70px 1fr auto; column-gap: 12px; }
+  }
+
+  /* ---------- Hover transitions ---------- */
+  .lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px -12px rgba(22, 48, 42, 0.35);
+  }
+
+  .btn-glow {
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .btn-glow:hover { transform: translateY(-2px); }
+
+  .underline-grow {
+    position: relative;
+  }
+  .underline-grow::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -4px;
+    width: 0%;
+    height: 2px;
+    background: #E8A33D;
+    transition: width 0.2s ease;
+  }
+  .underline-grow:hover::after { width: 100%; }
+
+  /* ---------- moisture gauge (signature element) ---------- */
+  .gauge {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    background: conic-gradient(#E8A33D 0deg 227deg, rgba(255,255,255,0.12) 227deg 360deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gauge-inner {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #16302A;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+
+<body class="bg-paper text-clay">
+
+  <!-- ============ NAV ============ -->
+  <header class="sticky top-0 z-50 bg-forest text-paper/90">
+    <div class="max-w-6xl mx-auto px-6 relative">
+      <div class="nav-flex h-[72px]">
+        <a href="#home" class="display font-bold text-lg tracking-tight text-paper">
+          terra<span class="text-gold">.</span>
+        </a>
+
+        <nav>
+          <ul class="nav-links text-sm font-medium">
+            <li><a href="#product" class="underline-grow">Product</a></li>
+            <li><a href="#care" class="underline-grow">Care schedule</a></li>
+            <li><a href="#reviews" class="underline-grow">Reviews</a></li>
+            <li><a href="#buy" class="inline-block bg-gold text-forest px-4 py-2 rounded-full font-semibold btn-glow">Shop Terra — $59</a></li>
+          </ul>
+        </nav>
+
+        <button id="nav-toggle" class="md:hidden text-paper" aria-label="Toggle menu" aria-expanded="false">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div id="nav-mobile" class="nav-mobile-panel text-sm font-medium">
+        <a href="#product" class="py-2">Product</a>
+        <a href="#care" class="py-2">Care schedule</a>
+        <a href="#reviews" class="py-2">Reviews</a>
+        <a href="#buy" class="py-2 text-gold">Shop Terra — $59</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ HERO ============ -->
+    <section id="home" class="bg-forest text-paper">
+      <div class="max-w-6xl mx-auto px-6 py-20 md:py-28 hero-flex">
+
+        <div class="flex-1">
+          <p class="mono text-gold text-xs tracking-widest uppercase mb-4">Self-watering · ceramic · sensor-guided</p>
+          <h1 class="display font-bold text-4xl md:text-6xl leading-[1.05] mb-6">
+            Water it once.<br>It tells you when it's thirsty again.
+          </h1>
+          <p class="text-paper/75 text-lg max-w-md mb-8">
+            Terra reads your soil's moisture every hour and refills itself from
+            a hidden reservoir — so your plants stay alive even when you don't
+            remember to check on them.
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <a href="#buy" class="bg-gold text-forest font-semibold px-7 py-3.5 rounded-full btn-glow">Shop Terra — $59</a>
+            <a href="#product" class="border border-paper/30 text-paper font-semibold px-7 py-3.5 rounded-full btn-glow hover:bg-paper/10">See how it works</a>
+          </div>
+        </div>
+
+        <div class="flex-1 flex justify-center">
+          <div class="w-64 h-80 md:w-80 md:h-96 rounded-[2.5rem] bg-forest2 border border-paper/10 flex items-center justify-center">
+            <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+              <ellipse cx="70" cy="165" rx="50" ry="10" fill="#0F221C"/>
+              <path d="M25 60 L115 60 L100 155 L40 155 Z" fill="#8FAE9C" stroke="#16302A" stroke-width="2"/>
+              <rect x="45" y="40" width="50" height="24" rx="4" fill="#F5F2E9"/>
+              <path d="M70 40 C 40 10, 20 25, 30 45" stroke="#E8A33D" stroke-width="6" fill="none" stroke-linecap="round"/>
+              <path d="M70 40 C 100 10, 120 25, 110 45" stroke="#E8A33D" stroke-width="6" fill="none" stroke-linecap="round"/>
+              <circle cx="70" cy="30" r="10" fill="#E8A33D"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ PRODUCT SHOWCASE (CSS Grid bento) ============ -->
+    <section id="product" class="max-w-6xl mx-auto px-6 py-20">
+      <p class="mono text-gold text-xs tracking-widest uppercase mb-3">Product showcase</p>
+      <h2 class="display font-bold text-3xl md:text-4xl mb-10 max-w-xl">Every part of Terra earns its place</h2>
+
+      <div class="bento">
+        <div class="cell-a rounded-2xl bg-forest text-paper p-8 flex flex-col justify-between lift">
+          <div>
+            <h3 class="display font-semibold text-2xl mb-2">400ml reservoir</h3>
+            <p class="text-paper/70 max-w-xs">Hidden in the base, it feeds your plant in small doses over 2–3 weeks — no soggy roots, no guesswork.</p>
+          </div>
+          <span class="mono text-gold text-sm">01 / capacity</span>
+        </div>
+
+        <div class="cell-b rounded-2xl bg-sage/30 p-8 flex flex-col justify-between lift">
+          <h3 class="display font-semibold text-xl mb-2">Capacitive moisture sensor</h3>
+          <p class="text-clay/70">Reads soil moisture hourly and only refills when your plant actually needs it.</p>
+        </div>
+
+        <div class="cell-c rounded-2xl bg-gold/90 p-6 flex flex-col justify-between lift">
+          <h3 class="display font-semibold text-lg mb-2">Glazed stoneware</h3>
+          <p class="text-forest/80 text-sm">Fired by hand in four finishes.</p>
+        </div>
+
+        <div class="cell-d rounded-2xl bg-forest2 text-paper p-6 flex flex-col justify-between lift">
+          <h3 class="display font-semibold text-lg mb-2">6-month battery</h3>
+          <p class="text-paper/70 text-sm">One CR2032 cell runs the sensor for half a year.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES (Flexbox cards) ============ -->
+    <section class="bg-forest2/5 border-y border-clay/10">
+      <div class="max-w-6xl mx-auto px-6 py-20">
+        <p class="mono text-gold text-xs tracking-widest uppercase mb-3">Why people switch to Terra</p>
+        <h2 class="display font-bold text-3xl md:text-4xl mb-10 max-w-xl">Built for people who love plants, not watering cans</h2>
+
+        <div class="card-flex">
+          <div class="bg-white rounded-2xl p-7 border border-clay/10 lift">
+            <div class="w-11 h-11 rounded-full bg-gold/20 flex items-center justify-center mb-4">🌱</div>
+            <h3 class="display font-semibold text-lg mb-2">Fewer dead plants</h3>
+            <p class="text-clay/70 text-sm">Terra's sensor prevents the two most common killers: overwatering and forgetting entirely.</p>
+          </div>
+          <div class="bg-white rounded-2xl p-7 border border-clay/10 lift">
+            <div class="w-11 h-11 rounded-full bg-gold/20 flex items-center justify-center mb-4">🧭</div>
+            <h3 class="display font-semibold text-lg mb-2">Works for 40+ species</h3>
+            <p class="text-clay/70 text-sm">Preset watering profiles for everything from succulents to ferns, adjustable in the app.</p>
+          </div>
+          <div class="bg-white rounded-2xl p-7 border border-clay/10 lift">
+            <div class="w-11 h-11 rounded-full bg-gold/20 flex items-center justify-center mb-4">🏺</div>
+            <h3 class="display font-semibold text-lg mb-2">Looks like a normal pot</h3>
+            <p class="text-clay/70 text-sm">No visible tech. Just glazed stoneware in four colourways, 6" or 9" wide.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CARE SCHEDULE + GAUGE (signature) ============ -->
+    <section id="care" class="max-w-6xl mx-auto px-6 py-20">
+      <div class="grid md:grid-cols-2 gap-16 items-center">
+
+        <div>
+          <p class="mono text-gold text-xs tracking-widest uppercase mb-3">Live from the app</p>
+          <h2 class="display font-bold text-3xl md:text-4xl mb-8">Your plant's week, at a glance</h2>
+
+          <div class="schedule-grid text-sm">
+            <span class="mono text-clay/50">Mon</span>
+            <span>Soil moisture steady at 62%</span>
+            <span class="mono text-sage">no action</span>
+
+            <span class="mono text-clay/50">Wed</span>
+            <span>Reservoir topped up 40ml</span>
+            <span class="mono text-gold">auto-watered</span>
+
+            <span class="mono text-clay/50">Fri</span>
+            <span>Light levels lower than usual</span>
+            <span class="mono text-clay/50">note only</span>
+
+            <span class="mono text-clay/50">Sun</span>
+            <span>Reservoir at 20% — refill soon</span>
+            <span class="mono text-gold">reminder sent</span>
+          </div>
+        </div>
+
+        <div class="flex justify-center">
+          <div class="bg-forest rounded-3xl p-10 flex flex-col items-center">
+            <div class="gauge">
+              <div class="gauge-inner">
+                <span class="display font-bold text-2xl text-paper">63%</span>
+                <span class="mono text-[10px] text-paper/60">moisture</span>
+              </div>
+            </div>
+            <p class="text-paper/60 text-sm mt-6 text-center max-w-[220px]">Next watering estimated in 4 days, based on this week's readings.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ REVIEWS ============ -->
+    <section id="reviews" class="bg-forest2/5 border-y border-clay/10">
+      <div class="max-w-6xl mx-auto px-6 py-20">
+        <p class="mono text-gold text-xs tracking-widest uppercase mb-3">From early growers</p>
+        <h2 class="display font-bold text-3xl md:text-4xl mb-10 max-w-xl">People who used to kill every plant they owned</h2>
+
+        <div class="card-flex">
+          <figure class="bg-white rounded-2xl p-7 border border-clay/10 lift">
+            <blockquote class="text-clay/80 mb-4">"I travel three weeks a month. My monstera has never looked better, and I haven't touched a watering can since March."</blockquote>
+            <figcaption class="mono text-xs text-clay/50">— Priya M., Bengaluru</figcaption>
+          </figure>
+          <figure class="bg-white rounded-2xl p-7 border border-clay/10 lift">
+            <blockquote class="text-clay/80 mb-4">"The app is genuinely useful, not just a gimmick. I can see exactly when it waters and why."</blockquote>
+            <figcaption class="mono text-xs text-clay/50">— Rahul D., Pune</figcaption>
+          </figure>
+          <figure class="bg-white rounded-2xl p-7 border border-clay/10 lift">
+            <blockquote class="text-clay/80 mb-4">"Bought one to test, now have five. They're pots first, gadgets second — that's exactly right."</blockquote>
+            <figcaption class="mono text-xs text-clay/50">— Meera K., Mumbai</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA / BUY ============ -->
+    <section id="buy" class="bg-forest text-paper">
+      <div class="max-w-6xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div>
+          <h2 class="display font-bold text-3xl md:text-4xl mb-3">Terra ships in 6 finishes</h2>
+          <p class="text-paper/70 max-w-md">$59 for the 6" pot, $79 for the 9" pot. Free shipping across India, 30-day returns.</p>
+        </div>
+        <a href="#" class="bg-gold text-forest font-semibold px-8 py-4 rounded-full btn-glow whitespace-nowrap">Shop Terra now</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-clay text-paper/70">
+    <div class="max-w-6xl mx-auto px-6 py-14 flex flex-col md:flex-row justify-between gap-10">
+      <div>
+        <p class="display font-bold text-paper text-lg mb-3">terra<span class="text-gold">.</span></p>
+        <p class="text-sm max-w-xs">Self-watering ceramic planters, designed in Mumbai. Made for people who forget to water — including us.</p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-10 text-sm">
+        <div>
+          <p class="mono text-gold text-xs uppercase tracking-widest mb-3">Contact</p>
+          <p><a href="mailto:hello@terraplant.example" class="underline-grow">hello@terraplant.example</a></p>
+          <p class="mt-2">Mumbai, Maharashtra, India</p>
+        </div>
+        <div>
+          <p class="mono text-gold text-xs uppercase tracking-widest mb-3">Follow</p>
+          <div class="flex gap-4">
+            <a href="#" class="underline-grow">Instagram</a>
+            <a href="#" class="underline-grow">Twitter</a>
+            <a href="#" class="underline-grow">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-paper/10 text-center text-xs py-5">&copy; 2026 Terra Plant Co. Built with HTML5, Tailwind CSS &amp; CSS Grid.</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('nav-toggle');
+    const panel = document.getElementById('nav-mobile');
+    toggle.addEventListener('click', () => {
+      const open = panel.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    panel.querySelectorAll('a').forEach(a =>
+      a.addEventListener('click', () => panel.classList.remove('open'))
+    );
+  </script>
+
+</body>
+</html>
