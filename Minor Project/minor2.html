@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vedhitha Chinthakunta — Front-End Developer</title>
+<meta name="description" content="Portfolio of Ananya Rao, a front-end developer building clean, accessible web experiences." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper:      #F7F5EF;
+    --paper-dim:  #EFEBE1;
+    --ink:        #1F2430;
+    --ink-soft:   #565C6B;
+    --rule:       #D9D4C6;
+    --indigo:     #4C56C9;
+    --indigo-dim: #E7E8F7;
+    --lime:       #C9E265;
+    --code-bg:    #1F2430;
+    --code-fg:    #EAE7DC;
+
+    --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+    --font-body:    "Inter", "Segoe UI", sans-serif;
+    --font-mono:    "JetBrains Mono", "Courier New", monospace;
+
+    --max: 920px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--indigo);
+    outline-offset: 3px;
+  }
+
+  .wrap {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  main { display: block; }
+
+  section { padding: 64px 0; scroll-margin-top: 90px; }
+  section + section { border-top: 1px solid var(--rule); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: var(--indigo);
+    text-transform: lowercase;
+    margin: 0 0 10px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
+  h3 { font-size: 1.2rem; }
+
+  p { margin: 0 0 16px; color: var(--ink-soft); max-width: 62ch; }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(247, 245, 239, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .site-header .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+  }
+
+  .brand {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .brand .dot { color: var(--indigo); }
+
+  .nav-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+  }
+
+  nav.main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav.main-nav a {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  nav.main-nav a::before { content: "<"; color: var(--rule); }
+  nav.main-nav a::after  { content: "/>"; color: var(--rule); }
+
+  nav.main-nav a:hover,
+  nav.main-nav a.active {
+    color: var(--indigo);
+    background: var(--indigo-dim);
+  }
+
+  nav.main-nav a:hover::before,
+  nav.main-nav a:hover::after,
+  nav.main-nav a.active::before,
+  nav.main-nav a.active::after {
+    color: var(--indigo);
+  }
+
+  @media (max-width: 720px) {
+    .nav-toggle { display: block; }
+    nav.main-nav {
+      position: absolute;
+      top: 72px;
+      left: 0;
+      right: 0;
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+      display: none;
+    }
+    nav.main-nav.open { display: block; }
+    nav.main-nav ul {
+      flex-direction: column;
+      padding: 12px 24px 20px;
+    }
+    nav.main-nav a { display: block; }
+  }
+
+  .hero { padding: 96px 0 72px; }
+
+  .hero .role {
+    font-family: var(--font-mono);
+    color: var(--indigo);
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+  }
+
+  .hero p.lede {
+    font-size: 1.15rem;
+    color: var(--ink);
+    max-width: 56ch;
+  }
+
+  .button-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+
+  .btn {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    border: 1px solid var(--ink);
+    transition: transform 0.15s ease;
+    cursor: pointer;
+    background: none;
+  }
+
+  .btn:hover { transform: translateY(-2px); }
+
+  .btn.primary { background: var(--ink); color: var(--paper); }
+  .btn.accent { background: var(--lime); border-color: var(--lime); color: var(--ink); }
+
+  .snippet {
+    margin-top: 48px;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border-radius: 10px;
+    padding: 22px 26px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+  }
+
+  .snippet .tag { color: #E293F0; }
+  .snippet .attr { color: var(--lime); }
+  .snippet .str { color: #93C5FD; }
+  .snippet .comment { color: #7C8194; }
+
+  .grid { display: grid; gap: 22px; }
+  .grid.two { grid-template-columns: repeat(2, 1fr); }
+  .grid.three { grid-template-columns: repeat(3, 1fr); }
+
+  @media (max-width: 720px) {
+    .grid.two, .grid.three { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--paper-dim);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 26px;
+  }
+
+  .card h3 { margin-bottom: 8px; }
+  .card p { margin-bottom: 0; }
+
+  .skill-group { margin-bottom: 40px; }
+
+  .tag-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tag-list li {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    color: var(--lime);
+    padding: 8px 14px;
+    border-radius: 6px;
+  }
+
+  .project {
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 24px;
+    background: var(--paper-dim);
+  }
+
+  .project .meta {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--indigo);
+    margin-bottom: 10px;
+  }
+
+  .project .links { display: flex; gap: 16px; margin-top: 14px; }
+  .project .links a {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 4px;
+  }
+  .project .links a:hover { text-decoration-color: var(--indigo); color: var(--indigo); }
+
+  .timeline { border-left: 2px solid var(--rule); padding-left: 26px; }
+  .timeline-item { position: relative; margin-bottom: 30px; }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -32px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--indigo);
+  }
+  .timeline-item .when {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;
+  }
+
+  @media (max-width: 720px) {
+    .contact-grid { grid-template-columns: 1fr; }
+  }
+
+  form { display: flex; flex-direction: column; gap: 16px; }
+
+  label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  input, textarea {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  textarea { resize: vertical; min-height: 130px; }
+
+  .contact-details p { margin-bottom: 10px; }
+  .contact-details .label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--indigo);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .form-note {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .site-footer { border-top: 1px solid var(--rule); padding: 32px 0; }
+
+  .site-footer .wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .site-footer p {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .social-row { display: flex; gap: 16px; }
+  .social-row a {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-decoration: none;
+    color: var(--ink-soft);
+  }
+  .social-row a:hover { color: var(--indigo); }
+
+  #form-status {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--indigo);
+    margin-top: -4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a href="#home" class="brand">Vedhitha<span class="dot">.</span>dev</a>
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="main-nav" aria-label="Primary">
+        <ul>
+          <li><a href="#home" class="nav-link" data-section="home">Home</a></li>
+          <li><a href="#about" class="nav-link" data-section="about">About</a></li>
+          <li><a href="#skills" class="nav-link" data-section="skills">Skills</a></li>
+          <li><a href="#projects" class="nav-link" data-section="projects">Projects</a></li>
+          <li><a href="#contact" class="nav-link" data-section="contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ HOME ============ -->
+    <section id="home" class="hero">
+      <div class="wrap">
+        <p class="role">Front-end developer · Andhra Pradesh, India</p>
+        <h1>Hi, I'm Vedhitha Chinthakunta.<br>I build web pages that make sense.</h1>
+        <p class="lede">
+          I'm a Electrical And Electronics Engineering student who enjoys turning plain content into
+          well-structured, navigable websites — the kind that load fast, read
+          clearly, and hold up on any screen size.
+        </p>
+        <div class="button-row">
+          <a href="#projects" class="btn primary">See my projects</a>
+          <a href="#contact" class="btn accent">Get in touch</a>
+        </div>
+
+        <div class="snippet" aria-hidden="true">
+<span class="comment">&lt;!-- how this page is put together --&gt;</span>
+<span class="tag">&lt;body&gt;</span>
+  <span class="tag">&lt;header&gt;</span><span class="tag">&lt;nav&gt;</span>Home · About · Skills · Projects · Contact<span class="tag">&lt;/nav&gt;</span><span class="tag">&lt;/header&gt;</span>
+  <span class="tag">&lt;main&gt;</span> five sections, one page, one file <span class="tag">&lt;/main&gt;</span>
+  <span class="tag">&lt;footer&gt;</span>built with HTML5, styled by hand<span class="tag">&lt;/footer&gt;</span>
+<span class="tag">&lt;/body&gt;</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <p class="eyebrow">what I'm about</p>
+        <h2>A few things worth knowing</h2>
+        <div class="grid three">
+          <article class="card">
+            <h3>Structure first</h3>
+            <p>I plan a page's semantic outline before its styling — headers, sections, and landmarks that make sense without CSS.</p>
+          </article>
+          <article class="card">
+            <h3>Details matter</h3>
+            <p>Consistent spacing, readable type, and navigation that behaves the same way throughout.</p>
+          </article>
+          <article class="card">
+            <h3>Always shipping</h3>
+            <p>Small projects, committed often — I track every change with Git and keep my work public on GitHub.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about">
+      <div class="wrap">
+        <p class="eyebrow">about me</p>
+        <h1>A bit of my background</h1>
+        <p class="lede">
+          I'm a B.Tech Graduate in Electrical and Electronics engineering based in Rajampet, currently
+          focused on front-end development and the fundamentals of how the web
+          works — from semantic HTML to version control.
+        </p>
+        <p>
+          What drew me to web development was how quickly an idea can become
+          something real: a few files, a browser, and suddenly there's a page
+          that anyone can open. That immediacy is still what keeps me building,
+          one small project at a time.
+        </p>
+
+        <p class="eyebrow" style="margin-top: 48px;">education &amp; milestones</p>
+        <h2>Where I've been</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <p class="when">2024 — Present</p>
+            <h3>B.Tech. Electrical and Electronics Engineering, Annamacharya Institute of Technology and Sciences </h3>
+            <p>Coursework in data structures, web technologies, and databases, alongside independent projects in HTML, CSS, and JavaScript.</p>
+          </div>
+          <div class="timeline-item">
+            <p class="when">2024</p>
+            <h3>Started learning Git &amp; GitHub</h3>
+            <p>Began tracking every project with version control — small commits, clear messages, public repositories.</p>
+          </div>
+          <div class="timeline-item">
+            <p class="when">2023</p>
+            <h3>First lines of HTML</h3>
+            <p>Built my first static page and got hooked on the structure-first way of thinking about the web.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SKILLS ============ -->
+    <section id="skills">
+      <div class="wrap">
+        <p class="eyebrow">what I work with</p>
+        <h1>Skills &amp; tools</h1>
+        <p class="lede">
+          Still early in my journey, so I'm keeping this list honest — what
+          I use confidently today, and what I'm actively learning.
+        </p>
+
+        <div class="skill-group">
+          <h2>Languages &amp; markup</h2>
+          <ul class="tag-list">
+            <li>HTML5</li>
+            <li>CSS3</li>
+            <li>JavaScript (ES6)</li>
+            <li>Python</li>
+          </ul>
+        </div>
+
+        <div class="skill-group">
+          <h2>Tools &amp; workflow</h2>
+          <ul class="tag-list">
+            <li>Git</li>
+            <li>GitHub</li>
+            <li>VS Code</li>
+            <li>Chrome DevTools</li>
+            <li>Figma</li>
+          </ul>
+        </div>
+
+        <div class="skill-group">
+          <h2>Concepts</h2>
+          <ul class="tag-list">
+            <li>Semantic HTML</li>
+            <li>Responsive layout</li>
+            <li>Flexbox &amp; Grid</li>
+            <li>Accessibility basics</li>
+            <li>Version control workflows</li>
+          </ul>
+        </div>
+
+        <div class="skill-group">
+          <h2>Currently learning</h2>
+          <ul class="tag-list">
+            <li>React</li>
+            <li>Node.js</li>
+            <li>SQL</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section id="projects">
+      <div class="wrap">
+        <p class="eyebrow">selected work</p>
+        <h1>Projects</h1>
+        <p class="lede">A few things I've built while learning — small in scope, but each one taught me something specific.</p>
+
+        <article class="project">
+          <p class="meta">HTML5 · CSS3 · Git</p>
+          <h3>This portfolio site</h3>
+          <p>A single-page personal website — Home, About, Skills, Projects, and Contact as linked sections — built with semantic HTML5 elements, versioned with Git and hosted on GitHub.</p>
+          <div class="links">
+            <a href="#">View repository</a>
+            <a href="#">Live site</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <p class="meta">HTML · CSS</p>
+          <h3>Recipe card layout</h3>
+          <p>A single responsive page practicing CSS Grid and Flexbox — recipe cards that reflow cleanly from a three-column desktop layout down to a single column on mobile.</p>
+          <div class="links">
+            <a href="#">View repository</a>
+            <a href="#">Live site</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <p class="meta">JavaScript · DOM</p>
+          <h3>To-do list app</h3>
+          <p>A small task tracker with add, complete, and delete actions, using vanilla JavaScript to manipulate the DOM and localStorage to persist tasks between visits.</p>
+          <div class="links">
+            <a href="#">View repository</a>
+            <a href="#">Live site</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section id="contact">
+      <div class="wrap">
+        <p class="eyebrow">get in touch</p>
+        <h1>Contact</h1>
+        <p class="lede">Have a question, feedback, or an idea to collaborate on? I'd like to hear from you.</p>
+
+        <div class="contact-grid">
+          <form id="contact-form">
+            <label>
+              Name
+              <input type="text" name="name" placeholder="Your name" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Message
+              <textarea name="message" placeholder="What's on your mind?" required></textarea>
+            </label>
+            <button type="submit" class="btn primary" style="align-self: flex-start;">Send message</button>
+            <p id="form-status" role="status"></p>
+            <p class="form-note">This form is a static demo — hook it up to a backend or a service like Formspree to make it work.</p>
+          </form>
+
+          <div class="contact-details">
+            <p>
+              <span class="label">Email</span>
+              <a href="mailto:ananya.rao@example.com">vedhitha@example.com</a>
+            </p>
+            <p>
+              <span class="label">Location</span>
+              Rayachoty, Andhra Pradesh, India
+            </p>
+            <p>
+              <span class="label">GitHub</span>
+              <a href="https://github.com/" target="_blank" rel="noopener">github.com/vedhitha</a>
+            </p>
+            <p>
+              <span class="label">LinkedIn</span>
+              <a href="https://linkedin.com/" target="_blank" rel="noopener">linkedin.com/in/vedhitha</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>&copy; 2026 Ananya Rao. Built with HTML5 &amp; CSS.</p>
+      <div class="social-row">
+        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://linkedin.com/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:vedhitha@example.com">Email</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    const toggle = document.querySelector(".nav-toggle");
+    const nav = document.querySelector(".main-nav");
+
+    toggle.addEventListener("click", () => {
+      const isOpen = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    // Close mobile menu after clicking a link
+    document.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", () => nav.classList.remove("open"));
+    });
+
+    // Highlight the nav link for the section currently in view
+    const sections = document.querySelectorAll("main > section[id]");
+    const navLinks = document.querySelectorAll(".nav-link");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            navLinks.forEach((link) => link.classList.remove("active"));
+            const active = document.querySelector(
+              `.nav-link[data-section="${entry.target.id}"]`
+            );
+            if (active) active.classList.add("active");
+          }
+        });
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    // Static demo form handling
+    const form = document.getElementById("contact-form");
+    const status = document.getElementById("form-status");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      status.textContent = "Thanks! This is a static demo, so nothing was actually sent.";
+      form.reset();
+    });
+  </script>
+
+</body>
+</html>
